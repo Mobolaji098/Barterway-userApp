@@ -5,14 +5,6 @@ const prodlocationSchema = new mongoose.Schema({
     latitude: { type: Number }
   });
 
-  const picSchema = new mongoose.Schema({
-    profileImage: {
-        type: String,
-        required: false,
-        max: 255
-    },
-  });
-  
 
 
 const productSchema = new mongoose.Schema({
@@ -47,7 +39,7 @@ const productSchema = new mongoose.Schema({
         type:String,
         required:true
     },
-    categories:{
+    category:{
         type:String,
         required: true
     },
@@ -69,9 +61,7 @@ const productSchema = new mongoose.Schema({
         type:Number,
         required: true
     },
-    productImages: [picSchema]
-
-
+   
 }, {timestamps: true});
 
 productSchema.add({location:prodlocationSchema});

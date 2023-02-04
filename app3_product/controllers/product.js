@@ -18,13 +18,13 @@ exports.store = async (req, res) => {
         //Attempt to upload product image to cloudinary
         const result = await uploadFiles(req.files);
         //Make sure all parameters are added
-        const {name,weight,description,categories,itemInReturn,bartercoin } = req.body;
+        const {name,weight,description,category,itemInReturn,bartercoin } = req.body;
         let productPayload={
                 userId:req.user._id,
                 name:name,
                 weight:weight,
                 description:description,
-                categories:categories,
+                category:category,
                 itemInReturn:itemInReturn,
                 bartercoin:bartercoin,
                 images: result,
@@ -51,26 +51,19 @@ exports.update = async (req, res) => {
     try {
         const productId = req.params.productId
         const userId = req.params.userId
-        const {name,weight,description,categories,itemInReturn,location,bartercoin } = req.body;
+        const update = req.body;
 
         // Check if the user owns the product
         Products.find({_id:productId,userId:userId }, async (error,product) => {
             if (product[0]) {
-                let productPayload={
-                    userId:req.user._id,
-                    name:name,
-                    weight:weight,
-                    description:description,
-                    categories:categories,
-                    itemInReturn:itemInReturn,
-                    location:location,
-                    bartercoin:bartercoin
-                };
-        
-                const product = await Products.findByIdAndUpdate(productId, {$set: productPayload}, {new: true});
-            
+                const product = await Products.findByIdAndUpdate(productId, {$set: update}, {new: true});
+            //if there is no image, return success message
+            if (!req.files[0]) return res.status(200).json({product, message: 'Product has been updated'});
+            //Attempt to upload to cloudinary
+            const result = await uploadFiles(req.files);
+            const product_ = await Products.findByIdAndUpdate(productId, {$set: {images: result}}, {new: true});
+            if (req.files[0]) return res.status(200).json({user: product_, message: 'Product has been updated'});
 
-        res.status(200).json({product, message: 'Product has been updated'});
             } 
         else{
             res.status(500).json({success: false, message: "product not available or user does not have permission"})
@@ -91,7 +84,7 @@ exports.show = async function (req, res) {
     try {
         const id = req.params.userId;
         const products = await Products.find({userId: id});
-        console.log("") 
+      
 
         if (!products) return res.status(401).json({message: 'User does not exist'});
 
@@ -111,7 +104,7 @@ exports.category = async function (req, res) {
         const excludedId = req.params.userId;
         
         const category = req.params.category
-        const products = await Products.find({userId: { $ne: excludedId }, categories: { $eq: category }});
+        const products = await Products.find({userId: { $ne: excludedId }, category: { $eq: category }});
         
         if (!products) return res.status(401).json({message: 'User does not exist'});
 
