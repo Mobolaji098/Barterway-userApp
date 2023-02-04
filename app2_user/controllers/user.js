@@ -1,6 +1,7 @@
 const User = require('../../app1_auth/models/user');
 const Token = require('../../app1_auth/models/token')
 const Product = require('../../app3_product/models/product')
+const {uploader} = require('../../src/utils/index');
 
 //const {uploader, sendEmail} = require('../utils/index');
 
@@ -83,7 +84,8 @@ exports.update = async function (req, res) {
         const update = req.body;
         const id = req.params.id;
         const userId = req.user._id;
-
+        
+       // console.log(update);
         //Make sure the passed id is that of the logged in user
         if (userId.toString() !== id.toString()) return res.status(401).json({message: "Sorry, you don't have the permission to upd this data."});
 
@@ -93,10 +95,10 @@ exports.update = async function (req, res) {
         if (!req.file) return res.status(200).json({user, message: 'User has been updated'});
 
         //Attempt to upload to cloudinary
-        // const result = await uploader(req);
-        // const user_ = await User.findByIdAndUpdate(id, {$set: update}, {$set: {profileImage: result.url}}, {new: true});
-
-        // if (!req.file) return res.status(200).json({user: user_, message: 'User has been updated'});
+        const result = await uploader(req);
+        const user_ = await User.findByIdAndUpdate(id, {$set: {profileImage: result}}, {new: true});
+        
+        if (req.file) return res.status(200).json({user: user_, message: 'User has been updated'});
 
     } catch (error) {
         res.status(500).json({message: error.message});

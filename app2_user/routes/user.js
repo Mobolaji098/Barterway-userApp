@@ -7,7 +7,13 @@ const User = require('../controllers/user');
 
 const router = express.Router();
 
-const upload = multer().single('profileImage');
+const storage = multer.memoryStorage();
+
+const maxSize = 6 * 1024 * 1024;
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: maxSize },
+})
 
 //INDEX
 router.get('/', User.index);
@@ -23,7 +29,7 @@ router.get('/', User.index);
 router.get('/:id',  User.show);
 
 //UPDATE
-router.put('/:id', upload, User.update);
+router.put('/:id', upload.single('profileImage'), User.update);
 
 //UPDATE USER LOCATION
 router.put('/loc/:id', User.updateloc);

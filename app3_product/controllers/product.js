@@ -1,5 +1,5 @@
 const Products = require('../models/product');
-
+const {uploadFiles} = require('../../src/utils/index');
 
 // @route GET api/product
 // @desc Show all products
@@ -13,32 +13,36 @@ exports.index = async (req, res) => {
 // @access Public
 exports.store = async (req, res) => {
     try {
-        const {name,weight,description,categories,itemInReturn,location,bartercoin } = req.body;
-        // Make sure all parameters are added
-
-       
+        if (req.files[0]){
+    
+        //Attempt to upload product image to cloudinary
+        const result = await uploadFiles(req.files);
+        //Make sure all parameters are added
+        const {name,weight,description,categories,itemInReturn,bartercoin } = req.body;
         let productPayload={
-            userId:req.user._id,
-            name:name,
-            weight:weight,
-            description:description,
-            categories:categories,
-            itemInReturn:itemInReturn,
-            location:location,
-            bartercoin:bartercoin
-        };
-       
-        const newProduct = new Products(productPayload);
+                userId:req.user._id,
+                name:name,
+                weight:weight,
+                description:description,
+                categories:categories,
+                itemInReturn:itemInReturn,
+                bartercoin:bartercoin,
+                images: result,
+    
+            }; 
+            const newProduct = new Products(productPayload);
+            await newProduct.save();
 
-        // Save the updated user product
-        await newProduct.save();
-
-        res.status(200).json({newProduct,message: 'Product Added for ' + req.user.userName + '.'});
-
+        return res.status(200).json({newProduct,message: 'Product Added for ' + req.user.userName + '.'})}
+        if (!req.files[0]){ 
+            res.status(500).json({success: false, message: "product does not have an image"})
+            }
+        
     } catch (error) {
         res.status(500).json({success: false, message: error.message})
     }
 };
+
 
 // @route PUT api/product/{userId}/{productId}
 // @desc update product
